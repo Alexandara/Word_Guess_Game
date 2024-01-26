@@ -1,3 +1,8 @@
+"""
+Code by Alexis Tudor
+Created for CS 6320: Natural Language processing
+Homework 1: Word Guess Game
+"""
 import sys
 import nltk
 from nltk.corpus import stopwords
@@ -10,7 +15,15 @@ nltk.download('wordnet')
 nltk.download('averaged_perceptron_tagger')
 
 class Word_Guess_Game:
+    """
+    Word_Guess_Game has functionality to perform various text processing as well
+    as a guessing game.
+    """
     def __init__(self, filename):
+        """
+        Initialization for the Word Guess Game class
+        :param filename: the name of the file containing the text to use
+        """
         self.filename = filename
         file = open(self.filename, "r")
         raw_text = file.read()
@@ -19,6 +32,10 @@ class Word_Guess_Game:
         seed(9999)
 
     def calculate_lexical_diversity(self):
+        """
+        This function calculates the lexical diversity of the body of text,
+        defined as the number of unique words divided by total words.
+        """
         # Convert the tokens list to a set of unique words
         unique_words = set(self.tokens)
         # Count all tokens
@@ -29,6 +46,11 @@ class Word_Guess_Game:
         print("Lexical Diversity: " + str(rounded))
 
     def preprocess_text(self):
+        """
+        This function normalizes the text, removing non-alphabetical words, stop words, and words
+        shorter than 6 letters long and returns the filtered words and a list of all nouns.
+        :return: a list of processed words and a list of nouns
+        """
         # tokenize the lower-case raw text, reduce the tokens to only those that are alpha, not in
         # the NLTK stopword list, and have length > 5
         filtered_tokens = []
@@ -58,6 +80,14 @@ class Word_Guess_Game:
         return filtered_tokens, nouns
 
     def get_nouns(self, tokens, nouns):
+        """
+        Takes in a list of words and a list of nouns and calculates how common
+        each noun is in the list of words, then returns a list of the 50 most
+        common nouns.
+        :param tokens: list of words
+        :param nouns: list of nouns
+        :return: list of 50 most common nouns
+        """
         # Make a dictionary of {noun:count of noun in tokens} items from the nouns and tokens lists; sort
         # the dict by count and print the 50 most common words and their counts. Save these words to a
         # list because they will be used in the guessing game.
@@ -81,25 +111,43 @@ class Word_Guess_Game:
             i += 1
         return common_noun_list
 
+    def print_list(self, word):
+        """
+        Prints a list of characters as a string with spaces between
+        the characters.
+        :param word: a list of characters
+        """
+        new_word = ""
+        for character in word:
+            new_word += character
+            new_word += " "
+        print(new_word)
 
     def word_guess(self, words):
+        """
+        Plays a word guessing game with the user based on the words
+        passed into the function.
+        :param words: list of words to use in the guessing game
+        """
         print("Let's play a word guessing game! (enter ! to stop)")
         # a. give the user 5 points to start with; the game ends when their total score is negative, or
         # they guess ‘!’ as a letter
         score = 5
         answer = ""
-        curr_word = ""
-        underscore_word = ""
+        curr_word = []
+        underscore_word = []
+        words_guessed = 0
         while score > -1 and answer != '!':
             # b. randomly choose one of the 50 words in the top 50 list (See the random numbers
             # notebook in the Xtras folder of the GitHub)
-            if curr_word == "":
+            if len(curr_word) == 0:
                 num = randint(0, 49)
-                curr_word = words[num]
+                for character in words[num]:
+                    curr_word.append(character)
                 for _ in curr_word:
-                    underscore_word += "_"
+                    underscore_word.append("_")
             # c. output to console an “underscore space” for each letter in the word
-            print(underscore_word)
+            self.print_list(underscore_word)
             # d. ask the user for a letter
             answer = input("Guess a letter: ")
             answer = answer.lower()
@@ -107,16 +155,37 @@ class Word_Guess_Game:
             # add 1 point to their score
             if answer in curr_word and answer not in underscore_word:
                 score += 1
-                print("Right! Score is " + str(score))
-            # HEREX
-            # f. if the letter is not in the word, subtract 1 from their score, print ‘Sorry, guess again’
+                print("Right! Score is " + str(score) + ".\n")
+                for i in range(len(curr_word)):
+                    if curr_word[i] == answer:
+                        underscore_word[i] = answer
             # g. guessing for a word ends if the user guesses the word or has a negative score
-            # Natural Language Processing Dr. Karen Mazidi
-            # Caution: All course work is run through plagiarism detection software comparing
-            # students’ work as well as work from previous semesters and other sources.
+            elif answer == "!":
+                print("Thanks for playing! Final score is " + str(score) + " and you guessed " + str(words_guessed) + ".")
+                break
+            # f. if the letter is not in the word, subtract 1 from their score, print ‘Sorry, guess again’
+            else:
+                score -= 1
+                if score > -1:
+                    print("Sorry, guess again. Score is " + str(score) + ".\n")
+                else:
+                    print("Your score is -1. Try again sometime!")
             # h. keep a cumulative total score and end the game if it is negative (or the user entered ‘!’)
             # for a guess
-            # i. right or wrong, give user feedback on their score for this word after each guess
+            if curr_word == underscore_word:
+                words_guessed += 1
+                self.print_list(underscore_word)
+                print("You solved it!")
+                print("\nCurrent score: " + str(score))
+                print("Words guessed: " + str(words_guessed))
+                answer = input("\nGuess another word? (Y/N): ")
+                answer = answer.lower()
+                if answer == 'n' or answer == '!':
+                    print("Thanks for playing!")
+                    break
+                curr_word = []
+                underscore_word = []
+                answer = ""
 
 if __name__ == '__main__':
     # Instruction 1
